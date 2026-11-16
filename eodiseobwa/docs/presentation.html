@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>오늘 저녁 어디서 봐?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pink:#FF3EA5; --cyan:#2DE8F5; --lime:#C6FF3D; --violet:#A77BFF; --amber:#FFC23D;
+  --bg:#F7F7F5; --panel:#FFFFFF; --panel2:#ECECF1; --ink:#141418; --muted:#5B5B68; --line:#E2E2E8;
+  color-scheme:light; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#F7F7F5; --panel:#FFFFFF; --panel2:#ECECF1; --ink:#141418; --muted:#5B5B68; --line:#E2E2E8; color-scheme:light; }
+}
+:root[data-theme="dark"]{ --bg:#F7F7F5; --panel:#FFFFFF; --panel2:#ECECF1; --ink:#141418; --muted:#5B5B68; --line:#E2E2E8; color-scheme:light; }
+*,*::before,*::after{box-sizing:inherit}
+html,body{height:100%}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:#0E0D12;color:var(--ink);font-family:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;overflow:hidden;word-break:keep-all}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:#0E0D12}
+.j{font-family:"Jua","Gowun Dodum",sans-serif;font-weight:400}
+
+/* 검정 영역: 슬라이드 전체(.dark) 또는 포인트 블록(.blk) */
+.dark,.blk{--bg:#0E0D12;--panel:#1A1921;--panel2:#272530;--ink:#F6F6F8;--muted:#B3B2BF;--line:#34323F;background:var(--bg);color:var(--ink)}
+.blk{background:#0E0D12}
+
+/* 네온 색: 흰 바탕에서는 형광펜, 검정 바탕에서는 선명한 글자색 (번짐 없음) */
+.np{--c:var(--pink)} .nc{--c:var(--cyan)} .nl{--c:var(--lime)} .nv{--c:var(--violet)} .na{--c:var(--amber)}
+.np,.nc,.nl,.nv,.na{background:var(--c);color:#111;padding:0 .18em;border-radius:.22em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.slide.dark .np,.slide.dark .nc,.slide.dark .nl,.slide.dark .nv,.slide.dark .na,
+.slide .blk .np,.slide .blk .nc,.slide .blk .nl,.slide .blk .nv,.slide .blk .na{background:none;color:var(--c);padding:0}
+
+.progress{position:fixed;top:0;left:0;right:0;height:4px;z-index:5;padding-top:env(safe-area-inset-top,0px);box-sizing:content-box;background:#0E0D12}
+.progress i{display:block;height:4px;width:0;background:linear-gradient(90deg,var(--pink),var(--cyan));transition:width .35s ease}
+.deck{position:relative;height:100%}
+.slide{position:absolute;inset:0;display:none;overflow-y:auto;background:var(--bg);color:var(--ink);padding:clamp(24px,5vh,56px) clamp(20px,5vw,72px) 104px}
+.slide.on{display:flex;flex-direction:column;justify-content:center}
+.inner{width:100%;max-width:1100px;margin:0 auto}
+.kicker{font-family:"Jua",sans-serif;font-size:clamp(14px,1.6vw,18px);letter-spacing:.06em;color:var(--muted);margin:0 0 10px}
+.kicker::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--pink);margin-right:8px;vertical-align:middle}
+h1,h2{font-family:"Jua",sans-serif;font-weight:400;margin:0}
+h2{font-size:clamp(30px,4.6vw,54px);line-height:1.2;margin-bottom:16px}
+.lead{font-size:clamp(16px,1.9vw,22px);color:var(--muted);line-height:1.6;margin:0 0 26px;max-width:44em}
+@media (prefers-reduced-motion:no-preference){
+  .slide.on .pop{animation:pop .5s cubic-bezier(.3,1.4,.5,1) both}
+  .slide.on .pop:nth-child(2){animation-delay:.07s}.slide.on .pop:nth-child(3){animation-delay:.14s}
+  .slide.on .pop:nth-child(4){animation-delay:.21s}.slide.on .pop:nth-child(5){animation-delay:.28s}
+  .slide.on .pop:nth-child(6){animation-delay:.35s}.slide.on .pop:nth-child(7){animation-delay:.42s}
+  .slide.on .pop:nth-child(8){animation-delay:.49s}.slide.on .pop:nth-child(9){animation-delay:.56s}.slide.on .pop:nth-child(10){animation-delay:.63s}
+  @keyframes pop{from{opacity:0;transform:translateY(14px) scale(.95)}to{opacity:1;transform:none}}
+  .bob{animation:bob 3s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+}
+
+/* cover */
+.cover{text-align:center}
+.cover h1{font-size:clamp(46px,9.5vw,120px);line-height:1.1}
+.cover .sub{font-size:clamp(17px,2.2vw,26px);margin:24px 0 0}
+.sign{display:inline-block;border:4px solid var(--pink);border-radius:28px;padding:clamp(18px,3vw,34px) clamp(22px,5vw,60px)}
+.sign.cy{border-color:var(--cyan)}
+
+/* chat */
+.chat{display:flex;flex-direction:column;gap:12px;max-width:520px;margin:0 auto}
+.msg{max-width:80%;padding:12px 18px;border-radius:22px;font-size:clamp(16px,1.9vw,21px)}
+.msg small{display:block;font-size:13px;color:var(--muted);margin-bottom:2px}
+.them{background:var(--panel2);align-self:flex-start;border-top-left-radius:6px}
+.me{align-self:flex-end;background:#0E0D12;color:#fff;border-top-right-radius:6px;border-bottom:4px solid var(--cyan)}
+.punch{text-align:center;font-family:"Jua",sans-serif;font-size:clamp(22px,3.2vw,38px);margin-top:30px}
+
+/* cards */
+.grid{display:grid;gap:14px}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.card{background:var(--panel);border:2px solid var(--line);border-radius:22px;padding:20px}
+.card .big{font-family:"Jua",sans-serif;font-size:clamp(28px,3.4vw,42px);line-height:1.2;display:inline-block;margin-bottom:8px}
+.card b{font-family:"Jua",sans-serif;font-weight:400;font-size:clamp(18px,2vw,23px);display:inline-block;margin-bottom:6px}
+.card p{margin:0;color:var(--muted);font-size:clamp(14px,1.5vw,17px);line-height:1.55}
+.bp{border-top:6px solid var(--pink)} .bc{border-top:6px solid var(--cyan)} .bl{border-top:6px solid var(--lime)}
+.card.blk{border-color:#0E0D12}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;counter-reset:s}
+.step{counter-increment:s;background:var(--panel);border-radius:20px;padding:18px 16px;border:2px solid var(--line)}
+.step::before{content:counter(s);font-family:"Jua",sans-serif;font-size:20px;display:inline-grid;place-items:center;width:40px;height:40px;border-radius:50%;background:#0E0D12;color:var(--pink);margin-bottom:10px}
+.step b{font-family:"Jua",sans-serif;font-weight:400;font-size:clamp(17px,1.8vw,21px);display:block}
+.step span{color:var(--muted);font-size:14px}
+
+/* bars */
+.bars{display:grid;gap:8px}
+.bar{display:grid;grid-template-columns:64px 1fr 62px;align-items:center;gap:10px;font-size:clamp(14px,1.5vw,17px)}
+.bar .t{display:block;height:14px;border-radius:8px;background:var(--panel2);overflow:hidden}
+.bar .f{display:block;height:100%;border-radius:8px}
+.bar .v{text-align:right;font-family:"Jua",sans-serif}
+.fp{background:var(--pink)} .fc{background:var(--cyan)} .fl{background:var(--lime)}
+
+/* area cards */
+.areas{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.area{border-radius:18px;padding:16px}
+.area .nm{font-family:"Jua",sans-serif;font-size:clamp(26px,2.8vw,34px);display:block;line-height:1.15}
+.area .tt{font-size:14.5px;display:block;margin-top:6px}
+.area .rg{font-size:12.5px;color:var(--muted)}
+
+/* questions */
+.qlist{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.qq{background:var(--panel);border-radius:18px;padding:16px 18px;border:2px solid var(--line)}
+.qq .n{font-family:"Jua",sans-serif;font-size:13px;display:inline-block;background:#0E0D12;color:var(--cyan);border-radius:8px;padding:2px 8px}
+.qq b{font-family:"Jua",sans-serif;font-weight:400;font-size:clamp(18px,1.9vw,22px);display:block;margin:8px 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips span{font-size:13px;background:var(--panel2);border-radius:999px;padding:3px 10px;color:var(--ink)}
+.qq.blk .chips span{background:#272530}
+
+/* tags */
+.tagrow{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:22px}
+.tg{font-family:"Jua",sans-serif;border-radius:12px;padding:8px 16px;font-size:clamp(16px,1.8vw,20px)}
+.tg2{background:var(--pink);color:#111}
+.tg1{background:var(--cyan);color:#111}
+.tg0{background:var(--panel2);color:var(--muted)}
+.scroll{overflow-x:auto}
+.mini{border-collapse:separate;border-spacing:4px;font-size:clamp(12.5px,1.3vw,15px);min-width:760px;width:100%}
+.mini th{font-family:"Jua",sans-serif;font-weight:400;color:var(--muted);text-align:center;padding:4px}
+.mini td{text-align:center;border-radius:8px;padding:6px 2px}
+.mini td.o{text-align:left;padding-left:4px;min-width:150px}
+.d2{background:var(--pink);color:#111;font-family:"Jua",sans-serif}
+.d1{background:var(--cyan);color:#111}
+.d0{color:#C5C5CF}
+
+/* formula */
+.formula{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:16px;margin:4px 0 26px}
+.fbox{border-radius:24px;padding:18px 28px;text-align:center;background:var(--panel);border:3px solid var(--c)}
+.fbox .p{font-family:"Jua",sans-serif;font-size:clamp(46px,7vw,84px);line-height:1;display:block}
+.fbox span{font-size:clamp(15px,1.6vw,19px);color:var(--muted)}
+.plus{font-family:"Jua",sans-serif;font-size:48px;color:var(--muted)}
+
+/* phone */
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:28px;align-items:center}
+.phone{max-width:330px;width:100%;margin:0 auto;border-radius:36px;padding:10px;background:#0E0D12}
+.screen{background:#1A1921;border-radius:28px;padding:20px 18px;color:#F6F6F8}
+.screen .tt{font-family:"Jua",sans-serif;font-size:28px;line-height:1.2;margin:0 0 6px}
+.screen .ds{font-size:13.5px;color:#B3B2BF;margin:0 0 10px}
+.screen .bk{border-top:1px solid #34323F;padding:9px 0;font-size:13.5px}
+.screen .bk b{display:block;font-family:"Jua",sans-serif;font-weight:400;font-size:13px;color:var(--cyan);margin-bottom:1px}
+.screen .bt{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.screen .bt span{text-align:center;font-family:"Jua",sans-serif;font-size:13px;border-radius:12px;padding:8px;background:var(--pink);color:#111}
+ul.dots{margin:0;padding:0;list-style:none;display:grid;gap:14px}
+ul.dots li{position:relative;padding-left:26px;font-size:clamp(15px,1.7vw,20px);line-height:1.5}
+ul.dots li::before{content:"";position:absolute;left:4px;top:.45em;width:11px;height:11px;border-radius:50%;background:var(--pink)}
+ul.dots li small{display:block;color:var(--muted);font-size:.8em}
+
+/* nav */
+.nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:12px;padding:8px 10px;z-index:6;background:#0E0D12;border-radius:999px}
+.nav button{font-family:"Jua",sans-serif;font-size:20px;background:var(--pink);color:#111;border:0;border-radius:50%;width:42px;height:42px;cursor:pointer}
+.nav button#next{background:var(--cyan)}
+.nav button:disabled{opacity:.3;cursor:default}
+.nav .count{font-family:"Jua",sans-serif;color:#F6F6F8;min-width:64px;text-align:center}
+</style>
+</head>
+<body>
+<div class="progress"><i id="prog"></i></div>
+<main class="deck" id="deck">
+
+<!-- 1 cover -->
+<section class="slide dark cover">
+  <div class="inner">
+    <div class="sign bob"><h1 class="j"><span class="np">오늘 저녁</span><br><span class="nc">어디서 봐?</span></h1></div>
+    <p class="sub">성향 테스트로 정하는 <span class="nl j">오늘의 약속 장소</span></p>
+  </div>
+</section>
+
+<!-- 2 problem -->
+<section class="slide">
+  <div class="inner">
+    <p class="kicker">PROBLEM</p>
+    <h2>매일 반복되는 <span class="np">그 질문</span></h2>
+    <div class="chat">
+      <div class="msg me pop">오늘 저녁 어디서 봐?</div>
+      <div class="msg them pop"><small>지은</small>아무 데나~</div>
+      <div class="msg them pop"><small>현우</small>난 강남에서 출발해</div>
+      <div class="msg them pop"><small>소라</small>시끄러운 데만 아니면 돼</div>
+      <div class="msg me pop">…</div>
+    </div>
+    <p class="punch">이 대화의 끝을 <span class="nc">테스트가 정해줍니다</span></p>
+  </div>
+</section>
+
+<!-- 3 solution -->
+<section class="slide">
+  <div class="inner">
+    <p class="kicker">SOLUTION</p>
+    <h2>모두의 <span class="np">취향</span>과 <span class="nc">출발지</span>를 합쳐서</h2>
+    <p class="lead">친구를 초대하면, 참여자 모두의 성향과 출발역을 계산해 서울 10개 권역 중 오늘 갈 곳을 정해줍니다.</p>
+    <div class="grid g3">
+      <div class="card bp pop"><span class="big np">초대</span><p>약속방을 만들고 링크 하나로 최대 10명까지</p></div>
+      <div class="card bc pop"><span class="big nc">테스트</span><p>10문항으로 각자의 오늘 저녁 취향 확인</p></div>
+      <div class="card bl pop"><span class="big nl">결정</span><p>취향 80% + 거리 20%로 모두에게 맞는 장소</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 flow -->
+<section class="slide">
+  <div class="inner">
+    <p class="kicker">USER FLOW</p>
+    <h2>약속이 정해지기까지</h2>
+    <div class="steps">
+      <div class="step pop"><b>약속방 만들기</b><span>인원 2~10명 설정</span></div>
+      <div class="step pop"><b>출발역 선택</b><span>수도권 전철역 검색</span></div>
+      <div class="step pop"><b>10문항 응답</b><span>초대받은 친구도 바로 참여</span></div>
+      <div class="step pop"><b>실시간 순위</b><span>응답할 때마다 1위가 바뀜</span></div>
+      <div class="step pop"><b>결과 확정</b><span>방장이 원할 때 확정</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 research -->
+<section class="slide">
+  <div class="inner">
+    <p class="kicker">RESEARCH</p>
+    <h2>10개 권역은 <span class="nl">데이터</span>로 골랐어요</h2>
+    <p class="lead">누구나 다시 확인할 수 있는 무료 공개 데이터 두 가지로 ‘찾아보는 곳’과 ‘실제로 모이는 곳’을 함께 봤습니다.</p>
+    <div class="grid g2">
+      <div class="card bp pop"><b class="np">검색 관심도</b><p>네이버 데이터랩 · 최근 1년 · 19~44세<br>권역별 ‘맛집·술집·핫플·데이트·가볼만한곳’ 검색량을 홍대 = 100 기준으로 비교</p></div>
+      <div class="card bc pop"><b class="nc">저녁 인파</b><p>서울 열린데이터광장 생활인구 · 63일 · 20~39세<br>저녁 19~22시 인구에서 새벽 인구를 빼 ‘저녁에 찾아온 사람’ 추정</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 research result -->
+<section class="slide">
+  <div class="inner">
+    <p class="kicker">RESEARCH RESULT</p>
+    <h2>찾아보는 곳 vs 모이는 곳</h2>
+    <div class="grid g2">
+      <div class="card">
+        <b class="np" style="margin-bottom:12px">검색 관심도 (홍대 = 100)</b>
+        <div class="bars">
+          <div class="bar"><span>홍대</span><span class="t"><span class="f fp" style="width:100%"></span></span><span class="v">100</span></div>
+          <div class="bar"><span>성수</span><span class="t"><span class="f fp" style="width:81%"></span></span><span class="v">81.1</span></div>
+          <div class="bar"><span>잠실</span><span class="t"><span class="f fp" style="width:66%"></span></span><span class="v">65.9</span></div>
+          <div class="bar"><span>용산</span><span class="t"><span class="f fp" style="width:58%"></span></span><span class="v">57.9</span></div>
+          <div class="bar"><span>강남</span><span class="t"><span class="f fp" style="width:53%"></span></span><span class="v">52.9</span></div>
+          <div class="bar"><span>을지로</span><span class="t"><span class="f fp" style="width:52%"></span></span><span class="v">51.8</span></div>
+          <div class="bar"><span>여의도</span><span class="t"><span class="f fp" style="width:47%"></span></span><span class="v">46.6</span></div>
+          <div class="bar"><span>이태원</span><span class="t"><span class="f fp" style="width:35%"></span></span><span class="v">35.4</span></div>
+          <div class="bar"><span>대학로</span><span class="t"><span class="f fp" style="width:30%"></span></span><span class="v">30.1</span></div>
+          <div class="bar"><span>압구정</span><span class="t"><span class="f fp" style="width:29%"></span></span><span class="v">29.1</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <b class="nc" style="margin-bottom:12px">주말 저녁 유입 인구 (명)</b>
+        <div class="bars">
+          <div class="bar"><span>홍대</span><span class="t"><span class="f fc" style="width:100%"></span></span><span class="v">39,175</span></div>
+          <div class="bar"><span>용산</span><span class="t"><span class="f fc" style="width:97%"></span></span><span class="v">37,864</span></div>
+          <div class="bar"><span>여의도</span><span class="t"><span class="f fc" style="width:90%"></span></span><span class="v">35,231</span></div>
+          <div class="bar"><span>잠실</span><span class="t"><span class="f fc" style="width:86%"></span></span><span class="v">33,707</span></div>
+          <div class="bar"><span>강남</span><span class="t"><span class="f fc" style="width:82%"></span></span><span class="v">32,093</span></div>
+          <div class="bar"><span>을지로</span><span class="t"><span class="f fc" style="width:78%"></span></span><span class="v">30,486</span></div>
+          <div class="bar"><span>성수</span><span class="t"><span class="f fc" style="width:41%"></span></span><span class="v">16,199</span></div>
+          <div class="bar"><span>압구정</span><span class="t"><span class="f fc" style="width:41%"></span></span><span class="v">16,012</span></div>
+          <div class="bar"><span>대학로</span><span class="t"><span class="f fc" style="width:40%"></span></span><span class="v">15,604</span></div>
+          <div class="bar"><span>이태원</span><span class="t"><span class="f fc" style="width:5%"></span></span><span class="v">2,112</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="lead" style="margin:18px 0 0;font-size:clamp(14px,1.5vw,17px)">이태원은 새벽까지 노는 동네라 저녁 인파 지표로는 낮게 잡히지만, 금·토 검색 집중도는 10개 권역 중 1위(평일 대비 1.64배)였어요.</p>
+  </div>
+</section>
+
+<!-- 7 areas -->
+<section class="slide">
+  <div class="inner">
+    <p class="kicker">10 AREAS</p>
+    <h2>오늘 저녁, <span class="np">10개의 선택지</span></h2>
+    <div class="areas">
+      <div class="area blk pop"><span class="nm np">홍대</span><span class="tt">끝까지 달리는 홍대!</span><span class="rg">홍대·합정·연남</span></div>
+      <div class="area blk pop"><span class="nm nc">성수</span><span class="tt">감도 수집가들의 성수!</span><span class="rg">성수·뚝섬·서울숲</span></div>
+      <div class="area blk pop"><span class="nm nl">잠실</span><span class="tt">호수 따라 데이트, 잠실!</span><span class="rg">잠실·송리단길</span></div>
+      <div class="area blk pop"><span class="nm nv">용산</span><span class="tt">신상 맛집 헌터의 용산!</span><span class="rg">용산·용리단길·삼각지</span></div>
+      <div class="area blk pop"><span class="nm na">강남</span><span class="tt">퇴근 후 소규모 회식, 강남!</span><span class="rg">강남·역삼·삼성</span></div>
+      <div class="area blk pop"><span class="nm np">을지로</span><span class="tt">노포 야장 레트로, 을지로!</span><span class="rg">을지로·익선동·종로3가</span></div>
+      <div class="area blk pop"><span class="nm nc">여의도</span><span class="tt">격식 있는 큰 모임, 여의도!</span><span class="rg">여의도·영등포</span></div>
+      <div class="area blk pop"><span class="nm nl">이태원</span><span class="tt">심야 루프탑의 이태원!</span><span class="rg">이태원·해방촌</span></div>
+      <div class="area blk pop"><span class="nm nv">대학로</span><span class="tt">공연 보고 한잔, 대학로!</span><span class="rg">대학로·혜화</span></div>
+      <div class="area blk pop"><span class="nm na">압구정</span><span class="tt">어른들의 조용한 아지트, 압구정!</span><span class="rg">압구정로데오·신사·청담</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 questions 1-5 -->
+<section class="slide">
+  <div class="inner">
+    <p class="kicker">QUESTIONS 1–5</p>
+    <h2>오늘 저녁을 <span class="nc">상상하게 하는</span> 질문</h2>
+    <div class="qlist">
+      <div class="qq pop"><span class="n">01 동행</span><b>오늘 저녁, 누구랑 만나?</b><div class="chips"><span>회사 사람들·진중한 모임</span><span>오랜 친구들</span><span>연인 또는 썸</span><span>맛집 메이트</span></div></div>
+      <div class="qq pop"><span class="n">02 분위기</span><b>가게 문을 열었을 때 들렸으면 하는 소리는?</b><div class="chips"><span>잔잔한 음악</span><span>두런두런 대화</span><span>짠! 건배 소리</span></div></div>
+      <div class="qq pop"><span class="n">03 장소</span><b>오늘 앉고 싶은 자리는?</b><div class="chips"><span>골목 야장</span><span>북적이는 술집</span><span>바·와인바</span><span>루프탑</span><span>룸</span><span>호수·한강 창가</span></div></div>
+      <div class="qq pop"><span class="n">04 메뉴</span><b>오늘 테이블에 깔렸으면 하는 안주는?</b><div class="chips"><span>한식 안주</span><span>고기·회</span><span>양식</span><span>이색 메뉴</span><span>퓨전·오마카세</span><span>펍 안주</span></div></div>
+      <div class="qq pop"><span class="n">05 주종</span><b>첫 잔은 뭘로 시작할까?</b><div class="chips"><span>소주</span><span>맥주</span><span>와인</span><span>칵테일·위스키</span><span>하이볼·사케</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 questions 6-10 -->
+<section class="slide">
+  <div class="inner">
+    <p class="kicker">QUESTIONS 6–10</p>
+    <h2>마지막 질문은 <span class="np">거리</span></h2>
+    <div class="qlist">
+      <div class="qq pop"><span class="n">06 감성</span><b>오늘 끌리는 가게는?</b><div class="chips"><span>노포</span><span>검증된 단골집</span><span>SNS 신상</span><span>힙한 곳</span><span>세련된 곳</span></div></div>
+      <div class="qq pop"><span class="n">07 활동</span><b>먹고 마시는 것 말고, 오늘 하고 싶은 건?</b><div class="chips"><span>바로 먹고 마시기</span><span>팝업 구경</span><span>산책</span><span>공연·전시</span><span>맛집 웨이팅</span><span>2차, 3차</span></div></div>
+      <div class="qq pop"><span class="n">08 격식</span><b>오늘 옷차림은?</b><div class="chips"><span>퇴근 복장 그대로</span><span>조금 신경 쓴 차림</span><span>갖춰 입는 자리</span></div></div>
+      <div class="qq pop"><span class="n">09 귀가</span><b>오늘 집에는 언제 들어갈 거야?</b><div class="chips"><span>10시 전</span><span>막차는 지켜야지</span><span>막차? 그게 뭔데</span></div></div>
+      <div class="qq blk pop"><span class="n">10 거리</span><b>약속 장소, 얼마나 멀어도 괜찮아?</b><div class="chips"><span>30분 이내</span><span>1시간까지</span><span>분위기만 좋으면 어디든</span></div></div>
+      <div class="qq pop"><span class="n">+ 자동 입력</span><b>모임 인원</b><p style="margin:0;color:var(--muted);font-size:14.5px">따로 묻지 않고 약속방 인원으로 반영</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 tag method -->
+<section class="slide">
+  <div class="inner">
+    <p class="kicker">SCORING</p>
+    <h2>점수 대신 <span class="np">태그</span>로 연결</h2>
+    <p class="lead">‘와인이 소주보다 높다’고 할 수 없고, ‘분위기 있다’는 사람마다 다르죠. 그래서 1~5점 척도 대신, 선택지마다 어울리는 권역을 태그로 연결했어요.</p>
+    <div class="tagrow"><span class="tg tg2">대표 2점</span><span class="tg tg1">해당 1점</span><span class="tg tg0">없음 0점</span></div>
+    <div class="scroll">
+      <table class="mini">
+        <thead><tr><th style="text-align:left">05 첫 잔은?</th><th>홍대</th><th>성수</th><th>잠실</th><th>용산</th><th>강남</th><th>을지로</th><th>여의도</th><th>이태원</th><th>대학로</th><th>압구정</th></tr></thead>
+        <tbody>
+          <tr><td class="o">역시 소주</td><td class="d2">대표</td><td class="d0">·</td><td class="d0">·</td><td class="d0">·</td><td class="d2">대표</td><td class="d1">해당</td><td class="d2">대표</td><td class="d0">·</td><td class="d1">해당</td><td class="d0">·</td></tr>
+          <tr><td class="o">시원한 맥주부터</td><td class="d1">해당</td><td class="d0">·</td><td class="d0">·</td><td class="d0">·</td><td class="d1">해당</td><td class="d2">대표</td><td class="d1">해당</td><td class="d1">해당</td><td class="d2">대표</td><td class="d0">·</td></tr>
+          <tr><td class="o">와인 한 병 오픈</td><td class="d0">·</td><td class="d2">대표</td><td class="d1">해당</td><td class="d1">해당</td><td class="d0">·</td><td class="d0">·</td><td class="d0">·</td><td class="d0">·</td><td class="d0">·</td><td class="d2">대표</td></tr>
+          <tr><td class="o">칵테일이나 위스키</td><td class="d0">·</td><td class="d1">해당</td><td class="d0">·</td><td class="d0">·</td><td class="d0">·</td><td class="d0">·</td><td class="d0">·</td><td class="d2">대표</td><td class="d0">·</td><td class="d1">해당</td></tr>
+          <tr><td class="o">하이볼이나 사케</td><td class="d0">·</td><td class="d1">해당</td><td class="d2">대표</td><td class="d2">대표</td><td class="d1">해당</td><td class="d0">·</td><td class="d0">·</td><td class="d0">·</td><td class="d0">·</td><td class="d0">·</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 11 fairness -->
+<section class="slide">
+  <div class="inner">
+    <p class="kicker">FAIRNESS CHECK</p>
+    <h2>어느 동네도 <span class="nl">편애하지 않게</span></h2>
+    <div class="two">
+      <ul class="dots">
+        <li>모든 문항에서 권역마다 대표 선택지는 딱 1개<small>그래서 10개 권역의 최대 점수가 모두 20점으로 같아요</small></li>
+        <li>30만 명이 무작위로 답했다고 가정한 시뮬레이션<small>완벽하게 공정하면 모든 권역이 10%</small></li>
+        <li>결과: 모든 권역 8.7% ~ 11.4%<small>처음엔 용산 15%, 홍대 7%였지만 태그를 조정해 균형 확보</small></li>
+      </ul>
+      <div class="card">
+        <div class="bars">
+          <div class="bar"><span>홍대</span><span class="t"><span class="f fl" style="width:76%"></span></span><span class="v">8.7%</span></div>
+          <div class="bar"><span>성수</span><span class="t"><span class="f fl" style="width:95%"></span></span><span class="v">10.8%</span></div>
+          <div class="bar"><span>잠실</span><span class="t"><span class="f fl" style="width:96%"></span></span><span class="v">10.9%</span></div>
+          <div class="bar"><span>용산</span><span class="t"><span class="f fl" style="width:80%"></span></span><span class="v">9.1%</span></div>
+          <div class="bar"><span>강남</span><span class="t"><span class="f fl" style="width:82%"></span></span><span class="v">9.4%</span></div>
+          <div class="bar"><span>을지로</span><span class="t"><span class="f fl" style="width:89%"></span></span><span class="v">10.2%</span></div>
+          <div class="bar"><span>여의도</span><span class="t"><span class="f fl" style="width:89%"></span></span><span class="v">10.1%</span></div>
+          <div class="bar"><span>이태원</span><span class="t"><span class="f fl" style="width:86%"></span></span><span class="v">9.8%</span></div>
+          <div class="bar"><span>대학로</span><span class="t"><span class="f fl" style="width:85%"></span></span><span class="v">9.7%</span></div>
+          <div class="bar"><span>압구정</span><span class="t"><span class="f fl" style="width:100%"></span></span><span class="v">11.4%</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 formula -->
+<section class="slide dark">
+  <div class="inner">
+    <p class="kicker">DECISION</p>
+    <h2 style="text-align:center">장소는 이렇게 정해져요</h2>
+    <div class="formula">
+      <div class="fbox np"><span class="p np">80%</span><span>모두의 취향</span></div>
+      <span class="plus">+</span>
+      <div class="fbox nc"><span class="p nc">20%</span><span>모두의 거리</span></div>
+    </div>
+    <div class="grid g3">
+      <div class="card pop"><b class="np">취향 점수</b><p>각자의 태그 점수를 100점으로 바꿔 참여자 평균</p></div>
+      <div class="card pop"><b class="nc">거리 점수</b><p>내가 괜찮다고 한 시간 안이면 100점, 넘으면 10분마다 20점 감점</p></div>
+      <div class="card pop"><b class="nl">동점이면?</b><p>모두에게 더 가까운 권역이 이겨요</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 stations -->
+<section class="slide">
+  <div class="inner">
+    <p class="kicker">STATIONS</p>
+    <h2><span class="nc">모두가 가까운 역</span>까지 찾아줘요</h2>
+    <div class="two">
+      <ul class="dots">
+        <li>출발역은 수도권 전철역 전체에서 검색<small>서울·경기·인천 지하철, 광역철도, 경전철까지</small></li>
+        <li>권역마다 역 후보 1~3개<small>예: 성수 권역 = 성수역, 뚝섬역, 서울숲역</small></li>
+        <li>가장 멀리서 오는 사람이 가장 덜 고생하는 역을 선택<small>한 명만 1시간 걸리는 약속은 이제 그만</small></li>
+      </ul>
+      <div class="card blk">
+        <b class="nc" style="margin-bottom:10px">용산 · 삼각지역</b>
+        <div class="bars">
+          <div class="bar"><span>지은</span><span class="t"><span class="f fc" style="width:55%"></span></span><span class="v">25분</span></div>
+          <div class="bar"><span>현우</span><span class="t"><span class="f fc" style="width:49%"></span></span><span class="v">22분</span></div>
+          <div class="bar"><span>소라</span><span class="t"><span class="f fp" style="width:100%"></span></span><span class="v">45분</span></div>
+        </div>
+        <p style="margin:12px 0 0;color:var(--muted)">소라는 30분까지 괜찮다고 해서 15분 초과로 거리 점수 80점</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 14 result -->
+<section class="slide">
+  <div class="inner">
+    <p class="kicker">RESULT</p>
+    <div class="two">
+      <div>
+        <h2>결과는 <span class="np">공유하고 싶게</span></h2>
+        <ul class="dots">
+          <li>결정적 이유<small>“3명 중 3명이 ‘SNS 신상’을 골랐어!”</small></li>
+          <li>우리 모임 케미<small>답이 가장 비슷한 찰떡 콤비 공개</small></li>
+          <li>아쉬운 2위<small>“다음 약속은 여기 어때?”</small></li>
+          <li>상세 점수 전부 공개<small>왜 여기가 나왔는지 누구나 납득</small></li>
+        </ul>
+      </div>
+      <div class="phone blk bob">
+        <div class="screen">
+          <p class="tt nv">신상 맛집 헌터의 용산!</p>
+          <p class="ds">웨이팅도 코스의 일부. 요즘 가장 뜨겁게 떠오르는 맛집 골목</p>
+          <div class="bk"><b>결정적 이유</b>3명 중 3명이 ‘요즘 SNS에서 난리 난 신상’을 골랐어!</div>
+          <div class="bk"><b>모두가 가까운 역 · 삼각지역</b>지은 25분 · 현우 22분 · 소라 45분</div>
+          <div class="bk"><b>찰떡 콤비</b>지은 &amp; 현우, 9개 중 7개가 같은 답!</div>
+          <div class="bk"><b>아쉬운 2위</b>성수! 1.2점 차이였어</div>
+          <div class="bt"><span>공유하기</span><span>방문 인증</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 15 end -->
+<section class="slide dark cover">
+  <div class="inner">
+    <p class="kicker" style="text-align:center">THANK YOU</p>
+    <div class="sign cy bob"><h1 class="j"><span class="nc">그래서,</span><br><span class="np">오늘 저녁 어디서 봐?</span></h1></div>
+    <p class="sub">이제 <span class="nl j">테스트</span>가 대답해줄게요</p>
+  </div>
+</section>
+
+</main>
+
+<nav class="nav" aria-label="슬라이드 이동">
+  <button id="prev" aria-label="이전 슬라이드">‹</button>
+  <span class="count" id="count">1 / 15</span>
+  <button id="next" aria-label="다음 슬라이드">›</button>
+</nav>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')];
+let i=0;
+function show(n){
+  i=Math.max(0,Math.min(slides.length-1,n));
+  slides.forEach((s,k)=>s.classList.toggle('on',k===i));
+  slides[i].scrollTop=0;
+  document.getElementById('count').textContent=(i+1)+' / '+slides.length;
+  document.getElementById('prog').style.width=((i+1)/slides.length*100)+'%';
+  document.getElementById('prev').disabled=i===0;
+  document.getElementById('next').disabled=i===slides.length-1;
+}
+document.getElementById('prev').onclick=()=>show(i-1);
+document.getElementById('next').onclick=()=>show(i+1);
+document.addEventListener('keydown',e=>{
+  if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();show(i+1);}
+  if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();show(i-1);}
+  if(e.key==='Home')show(0); if(e.key==='End')show(slides.length-1);
+});
+let sx=null,sy=null;
+document.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(sx===null)return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.3)show(i+(dx<0?1:-1));sx=null;
+},{passive:true});
+show(0);
+</script>
+</body>
+</html>

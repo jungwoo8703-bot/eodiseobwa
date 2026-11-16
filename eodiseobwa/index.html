@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>오늘 저녁 어디서 봐?</title>
+<meta name="description" content="성향 테스트로 정하는 오늘의 약속 장소">
+<meta name="theme-color" content="#1F1D25">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preload" href="fonts/Galmuri11.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/Galmuri11-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="metro-bg" aria-hidden="true"><i class="v1"></i><i class="h1"></i><i class="h2"></i><i class="h3"></i></div>
+
+<div class="cabinet">
+  <header class="cab-head">
+    <div class="logo"><b aria-hidden="true"></b>SEOUL METRO '99</div>
+    <span class="sp"></span>
+    <button class="bgm" id="bgm" aria-pressed="false" type="button">♪ 8-BIT BGM</button>
+    <span class="coinlbl">1COIN=1PLAY</span>
+  </header>
+
+  <main class="screen" id="screen" tabindex="-1">
+    <div class="view center"><div class="loading">LOADING<span class="dots"></span></div></div>
+  </main>
+
+  <footer class="cab-foot">
+    <span>TASTE: 80% / DIST: 20%<span id="demo"></span></span>
+    <span class="blink" id="footmsg">INSERT COIN TO RIDE</span>
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

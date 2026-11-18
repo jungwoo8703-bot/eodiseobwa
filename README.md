@@ -10,7 +10,7 @@
 
 | 기능 | 내용 |
 |---|---|
-| 회원가입 | 이메일 + 비밀번호(8자 이상, 영문+숫자), 만 14세 이상 확인, 개인정보 수집·이용 동의, 이메일 인증 |
+| 회원가입 | 이메일 + 비밀번호(8자 이상, 영문+숫자), 만 14세 이상 확인, 개인정보 수집·이용 동의, 이메일 인증(현재 꺼 둠 — Supabase 설정으로 on/off) |
 | 로그인/로그아웃 | 세션 유지(앱을 다시 열어도 로그인 상태 유지) |
 | 닉네임 생성 | 2~10자, 한글/영문/숫자/_ · 중복 확인(대소문자 무시) · 예약어/비속어 차단 · 🎲 랜덤 닉네임 |
 | 닉네임 변경 | 내 정보 > 닉네임 변경 |
@@ -57,7 +57,8 @@ docs/                   발표 자료, 디자인 시안
    - Site URL: `https://<아이디>.github.io/eodiseobwa/`
    - Redirect URLs에도 같은 주소 추가 (인증 메일 링크가 여기로 돌아옴)
 4. **Authentication > Sign In / Providers > Email**
-   - Confirm email: 켜짐(권장) · Minimum password length: 8
+   - **Confirm email: 끄기** (팀 테스트 단계 — 메일 없이 바로 가입) · Minimum password length: 8
+   - 외부 오픈 전에 다시 켜기 → 아래 '인증 메일 관련 주의' 참고 (앱 코드는 수정 불필요, 켜면 자동으로 인증 메일 안내 화면이 나옴)
 5. **Project Settings > API Keys**(또는 Data API)에서 두 값을 복사해 `js/config.js`에 입력
    - `SUPABASE_URL` = Project URL (`https://xxxx.supabase.co`)
    - `SUPABASE_ANON_KEY` = **anon** 또는 **publishable** 키
@@ -70,8 +71,11 @@ docs/                   발표 자료, 디자인 시안
 
 Supabase 기본 메일 발송기는 **프로젝트 팀원(조직 멤버) 이메일로만, 시간당 소량**만 보냅니다.
 
-- 팀 내부 테스트: 팀원을 Supabase 조직(Organization > Team)에 초대하거나, 테스트 기간에만 Confirm email을 끄기
-- 외부 사용자 오픈 전: **Authentication > Emails > SMTP Settings**에서 외부 메일 서비스(Resend, Gmail SMTP 등) 연결
+- 현재 방침: 팀 테스트 기간에는 Confirm email **꺼 둠** (비용 0원)
+- 외부 사용자 오픈 전 체크리스트
+  1. 도메인 구입 → Resend 등 메일 서비스에서 도메인 인증 (Resend 무료: 하루 100통·월 3,000통)
+  2. **Authentication > Emails > SMTP Settings**에 메일 서비스 정보 입력
+  3. Confirm email **다시 켜기**
 - 메일 문구 한글화: Authentication > Emails > Templates > *Confirm signup*
 
 ## 로컬에서 실행 (개발용)
